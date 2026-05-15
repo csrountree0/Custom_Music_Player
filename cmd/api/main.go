@@ -21,7 +21,7 @@ func main() {
 
 	log.Printf("connected to database at %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
 
-	r := router.New(db, cfg)
+r := router.New(db, cfg)
 
 	log.Printf("server starting on port %s (environment: %s)", cfg.ServerPort, cfg.Environment)
 

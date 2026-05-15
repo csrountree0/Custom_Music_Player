@@ -10,7 +10,7 @@ import (
 
 func Connect(cfg *config.Config) (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
-		"host=%s port=%s dbname=%s user=%s password=%s sslmode=%s TimeZone=UTC",
+		"host=%s port=%s dbname=%s user=%s password=%s sslmode=%s TimeZone=UTC search_path=public",
 		cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBUser, cfg.DBPassword, cfg.DBSSLMode,
 	)
 
