@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -261,4 +262,33 @@ func (h *CatalogHandler) DeleteTrack(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+func (h *CatalogHandler) StreamTrack(c *gin.Context) {
+	userID := c.MustGet("userID").(uuid.UUID)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		apierror.New(400, "INVALID_ID", "id must be a valid UUID").Respond(c)
+		return
+	}
+
+	track, err := h.catalogSvc.GetTrack(id, userID)
+	if err != nil {
+		respondError(c, err)
+		return
+	}
+
+	if track.FilePath == "" {
+		apierror.New(404, "NO_FILE", "no audio file for this track").Respond(c)
+		return
+	}
+
+	f, err := os.Open(track.FilePath)
+	if err != nil {
+		apierror.New(500, "FILE_ERROR", "could not open audio file").Respond(c)
+		return
+	}
+	defer f.Close()
+
+	http.ServeContent(c.Writer, c.Request, track.Title, track.UpdatedAt, f)
 }

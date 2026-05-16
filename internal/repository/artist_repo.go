@@ -15,6 +15,7 @@ type ArtistRepository interface {
 	Create(artist *models.Artist) error
 	FindByID(id, ownerID uuid.UUID) (*models.Artist, error)
 	FindByNameAndOwner(name string, ownerID uuid.UUID) (*models.Artist, error)
+	Search(ownerID uuid.UUID, query string) ([]models.Artist, error)
 	Update(artist *models.Artist) error
 	Delete(id, ownerID uuid.UUID) error
 }
@@ -61,6 +62,15 @@ func (r *gormArtistRepository) FindByNameAndOwner(name string, ownerID uuid.UUID
 		return nil, fmt.Errorf("finding artist by name: %w", err)
 	}
 	return &artist, nil
+}
+
+func (r *gormArtistRepository) Search(ownerID uuid.UUID, query string) ([]models.Artist, error) {
+	var artists []models.Artist
+	err := r.db.Where("owner_id = ? AND name ILIKE ?", ownerID, "%"+query+"%").Find(&artists).Error
+	if err != nil {
+		return nil, fmt.Errorf("searching artists: %w", err)
+	}
+	return artists, nil
 }
 
 func (r *gormArtistRepository) Update(artist *models.Artist) error {

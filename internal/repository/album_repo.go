@@ -15,6 +15,7 @@ type AlbumRepository interface {
 	Create(album *models.Album) error
 	FindByID(id, ownerID uuid.UUID) (*models.Album, error)
 	FindByTitleArtistOwner(title string, artistID *uuid.UUID, ownerID uuid.UUID) (*models.Album, error)
+	Search(ownerID uuid.UUID, query string) ([]models.Album, error)
 	Update(album *models.Album) error
 	Delete(id, ownerID uuid.UUID) error
 }
@@ -66,6 +67,15 @@ func (r *gormAlbumRepository) FindByTitleArtistOwner(title string, artistID *uui
 		return nil, fmt.Errorf("finding album by title: %w", err)
 	}
 	return &album, nil
+}
+
+func (r *gormAlbumRepository) Search(ownerID uuid.UUID, query string) ([]models.Album, error) {
+	var albums []models.Album
+	err := r.db.Where("owner_id = ? AND title ILIKE ?", ownerID, "%"+query+"%").Find(&albums).Error
+	if err != nil {
+		return nil, fmt.Errorf("searching albums: %w", err)
+	}
+	return albums, nil
 }
 
 func (r *gormAlbumRepository) Update(album *models.Album) error {

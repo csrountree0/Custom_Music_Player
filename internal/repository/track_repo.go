@@ -14,6 +14,8 @@ type TrackRepository interface {
 	List(ownerID uuid.UUID, p pagination.Params) ([]models.Track, int64, error)
 	Create(track *models.Track) error
 	FindByID(id, ownerID uuid.UUID) (*models.Track, error)
+	FindByIDs(ids []uuid.UUID, ownerID uuid.UUID) ([]models.Track, error)
+	Search(ownerID uuid.UUID, query string) ([]models.Track, error)
 	Update(track *models.Track) error
 	Delete(id, ownerID uuid.UUID) error
 }
@@ -51,6 +53,24 @@ func (r *gormTrackRepository) FindByID(id, ownerID uuid.UUID) (*models.Track, er
 		return nil, fmt.Errorf("finding track: %w", err)
 	}
 	return &track, nil
+}
+
+func (r *gormTrackRepository) FindByIDs(ids []uuid.UUID, ownerID uuid.UUID) ([]models.Track, error) {
+	var tracks []models.Track
+	err := r.db.Where("id IN ? AND owner_id = ?", ids, ownerID).Find(&tracks).Error
+	if err != nil {
+		return nil, fmt.Errorf("finding tracks by ids: %w", err)
+	}
+	return tracks, nil
+}
+
+func (r *gormTrackRepository) Search(ownerID uuid.UUID, query string) ([]models.Track, error) {
+	var tracks []models.Track
+	err := r.db.Where("owner_id = ? AND title ILIKE ?", ownerID, "%"+query+"%").Find(&tracks).Error
+	if err != nil {
+		return nil, fmt.Errorf("searching tracks: %w", err)
+	}
+	return tracks, nil
 }
 
 func (r *gormTrackRepository) Update(track *models.Track) error {
